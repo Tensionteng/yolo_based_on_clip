@@ -61,6 +61,8 @@ from .conv import (
     LightConv,
     RepConv,
     SpatialAttention,
+    CrossAttention,
+    Clip
 )
 from .head import OBB, Classify, Detect, Pose, RTDETRDecoder, Segment, WorldDetect
 from .transformer import (
