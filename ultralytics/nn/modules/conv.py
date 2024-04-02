@@ -374,7 +374,6 @@ class CrossAttention(nn.Module):
     def __init__(self, channel: int, clip_channel: int, kernel_size: int = 7):
         super(CrossAttention, self).__init__()
         self.cross_attention = CBAM(c1=channel, kernel_size=kernel_size)
-        
 
     def forward(self, x):
         x, clip_feature = x[0], x[1]
@@ -383,16 +382,18 @@ class CrossAttention(nn.Module):
         batch, in_channel = clip_feature.size()
 
         mlp = nn.Sequential(
-            nn.Linear(in_channel, h * w),
-            nn.ReLU(),
+            nn.Linear(in_channel, 512 * 2), nn.ReLU(), nn.Linear(512 * 2, h), nn.ReLU()
         ).to(self.device)
 
         x = x.to(self.device)
         residual = x
         with autocast():
             clip_feature = mlp(clip_feature)
+        # clip_feature = (
+        #     torch.reshape(clip_feature, (batch, h, w)).unsqueeze(1).expand_as(x)
+        # )
         clip_feature = (
-            torch.reshape(clip_feature, (batch, h, w)).unsqueeze(1).expand_as(x)
+            clip_feature.repeat(1, w).reshape(batch, h, w).unsqueeze(1).expand_as(x)
         )
 
         x = self.cross_attention(x + clip_feature)
@@ -401,7 +402,7 @@ class CrossAttention(nn.Module):
 
 class Clip(nn.Module):
     def __init__(
-        self, channel, text: list[str] = ["traffic"], skip: bool = True
+        self, channel, text: list[str] = ["vehicle"], skip: bool = True
     ) -> None:
         super(Clip, self).__init__()
         self.model, _ = clip.load("ViT-B/32")

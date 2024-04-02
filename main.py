@@ -1,7 +1,10 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES']='1'
+
 from ultralytics import YOLO
 
 model = YOLO("yolov8m-obb-clip.yaml")
-pretrain_model = YOLO("model/yolov8m-obb.pt")
+pretrain_model = YOLO("models/yolov8m-obb.pt")
 
 
 def get_num(layer: str) -> int:
@@ -78,4 +81,4 @@ for k, v in model.named_parameters():
 
 # model.add_callback("on_train_start", freeze_layer)
 
-results = model.train(data="./DOTAv1.yaml", epochs=100, imgsz=640, batch=16)
+results = model.train(data="./DOTAv1.yaml", epochs=100, imgsz=640, batch=16, device=[1])
